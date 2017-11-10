@@ -30,9 +30,17 @@ for(i in 1:length(table_names)){
 }
 
 ### Create a few summary metric
-nb_types_of_cuisine <- nrow(cuisine_names)
-nb_restaurants <- nrow(restaurant_names)
+nb_types_of_cuisine <- restaurant_attributes %>% .$cuisine_id %>% unique %>% length
+nb_restaurants <- restaurant_attributes %>% .$restaurant_id %>% unique %>% length
 nb_total_violations <- nrow(restaurant_violations)
+nb_total_violations_by_grade <- restaurant_violations %>%
+  dplyr::group_by(grade) %>%
+  dplyr::summarise(count = n())
+barplot_violations_by_grade <- ggplot(restaurant_violations,
+                                      aes(x = grade)) +
+  geom_bar() +
+  theme(text = element_text(size=24))
+barplot_violations_by_grade
 
 # Enrich restaurant info
 restaurant_attributes_enriched <- restaurant_attributes %>%
@@ -62,6 +70,17 @@ violations_by_restaurant <- restaurant_violations %>%
 restaurant_all_attributes <- restaurant_attributes_enriched %>%
   dplyr::left_join(violations_by_restaurant)
 
+probability_only_grade_A <- sum(restaurant_all_attributes$received_only_grade_A)/nrow(restaurant_all_attributes)
+probability_only_grade_A_by_cuisine_type <- restaurant_all_attributes %>%
+  dplyr::group_by(cuisine_description) %>%
+  dplyr::summarise(probability = sum(received_only_grade_A)/n(),
+                   count = n()) %>%
+  dplyr::arrange(desc(probability)) %>%
+  dplyr::filter(count > 50)
+
+probability_only_grade_A_by_cuisine_type %>% head()
+probability_only_grade_A_by_cuisine_type %>% tail()
+
 # Shorten name of certain cuistine types
 restaurant_all_attributes$cuisine_description[grepl('Latin', restaurant_all_attributes$cuisine_description)] <- 'Latin'
 restaurant_all_attributes$cuisine_description[grepl('Coffee', restaurant_all_attributes$cuisine_description)] <- 'Coffee Shop'
@@ -77,17 +96,20 @@ nb_restaurants
 # Number of restaurants by borough
 barplot_restaurants_by_borough <- ggplot(restaurant_all_attributes,
                                       aes(x = borough_name)) +
-  geom_bar()
+  geom_bar() +
+  theme(text = element_text(size=24))
+
 barplot_restaurants_by_borough
 
 # Relationship between borough and average violation scores
 boxplot_score_by_borough <- ggplot(restaurant_all_attributes,
                                    aes(x = borough_name,
-                                       y = mean_violation_score)) +
-  geom_boxplot()
+                                       y = median_violation_score)) +
+  geom_boxplot() +
+  theme(text = element_text(size=24))
 boxplot_score_by_borough
 
-borough_lm <- lm(mean_violation_score ~ borough_name,
+borough_lm <- lm(median_violation_score ~ borough_name,
                  data = restaurant_all_attributes)
 summary(borough_lm)
 
@@ -97,8 +119,17 @@ restaurant_cuisine_type <- restaurant_all_attributes %>%
   dplyr::summarise(count = n()) %>%
   dplyr::arrange(desc(count))
 
-top_ten_cuisines_by_count <- restaurant_cuisine_type %>% head(10)
+top_ten_cuisines_by_count <- restaurant_cuisine_type %>% head(10) %>%
 print(top_ten_cuisines_by_count)
+
+barplot_topten_cuisines_by_count <- ggplot(top_ten_cuisines_by_count,
+                                           aes(x = cuisine_description,
+                                               y = count)) +
+  geom_bar(stat = "identity") +
+  theme(text = element_text(size=24),
+        axis.text.x=element_text(angle=60,hjust=1))
+
+barplot_topten_cuisines_by_count
 
 top_ten_cuisines_by_count_scores <- restaurant_all_attributes %>%
   filter(cuisine_description %in% top_ten_cuisines_by_count$cuisine_description)
@@ -106,12 +137,13 @@ top_ten_cuisines_by_count_scores <- restaurant_all_attributes %>%
 # Relationship between cuisine type and average score
 boxplot_top_ten_cuisines_by_count_scores <- ggplot(top_ten_cuisines_by_count_scores,
                                                    aes(x = cuisine_description,
-                                                       y = mean_violation_score)) +
+                                                       y = median_violation_score)) +
   geom_boxplot() +
-  theme(axis.text.x=element_text(angle=60,hjust=1))
+  theme(axis.text.x=element_text(angle=60,hjust=1),
+        text = element_text(size=24))
 boxplot_top_ten_cuisines_by_count_scores
 
-cuisine_type_linear_model <- lm(mean_violation_score ~ cuisine_description,
+cuisine_type_linear_model <- lm(median_violation_score ~ cuisine_description,
                    data = top_ten_cuisines_by_count_scores)
 summary(cuisine_type_linear_model)
 
@@ -126,7 +158,10 @@ restaurant_violations_enriched <- restaurant_violations %>%
 
 boxplot_violations_by_month <- ggplot(restaurant_violations_enriched,
                                         aes(x = grade_month, y = score, group = grade_month)) +
-  geom_boxplot()
+  geom_boxplot() +
+  theme(axis.text.x=element_text(angle=60,hjust=1),
+        text = element_text(size=24))
+  
 boxplot_violations_by_month
 
 violations_by_month_lm <- lm(score ~ grade_month, data = restaurant_violations_enriched)
@@ -135,8 +170,6 @@ summary(violations_by_month_lm)
 boxplot_violations_by_quarter <- ggplot(restaurant_violations_enriched,
                                         aes(x = year_quarter, y = score)) +
   geom_boxplot()
-boxplot_violations_by_quarter
-
-# plot average as barchart and by year, and add to appendix
-
-# output to google sheet
+boxplot_violations_by_quarter +
+  theme(axis.text.x=element_text(angle=60,hjust=1),
+        text = element_text(size=24))
