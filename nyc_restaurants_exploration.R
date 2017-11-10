@@ -1,6 +1,7 @@
 library(dplyr, lib.loc = '../r_libs/')
 library(ggplot2, lib.loc = '../r_libs/')
 library(labeling, lib.loc = '../r_libs/')
+library(lubridate, lib.loc = '../r_libs/')
 
 ### Read in files as tables
 
@@ -33,30 +34,35 @@ nb_types_of_cuisine <- nrow(cuisine_names)
 nb_restaurants <- nrow(restaurant_names)
 nb_total_violations <- nrow(restaurant_violations)
 
-# Add naming to keys
+# Enrich restaurant info
 restaurant_attributes_enriched <- restaurant_attributes %>%
   dplyr::left_join(restaurant_names, by = c('restaurant_id' = 'id')) %>%
   dplyr::left_join(borough_names, by = c('borough_id' = 'id')) %>%
   dplyr::left_join(cuisine_names, by = c('cuisine_id' = 'id'))
 
-# Summary table of violations by restaurant id
 # Clean violation_names data frame
 violation_names_cleaned <- violation_names %>%
     mutate(id = as.integer(row.names),
            violation_description = id..violation_description) %>%
     select(id, violation_description)
 
+# Summarize violations by restaurant id
 violations_by_restaurant <- restaurant_violations %>%
   dplyr::left_join(violation_names_cleaned, by = c('violation_id' = 'id')) %>%
-  dplyr::mutate(critical_flag = critical_flag == 'Critical') %>%
+  dplyr::mutate(critical_flag = critical_flag == 'Critical',
+                is_grade_A = grade == 'A') %>%
   dplyr::group_by(restaurant_id) %>%
   dplyr::summarise(critical_flag = max(critical_flag),
-                   mean_violation_score = mean(score))
+                   mean_violation_score = mean(score),
+                   median_violation_score = median(score),
+                   received_grade_A = max(is_grade_A) == 1,
+                   received_only_grade_A = sum(!is_grade_A) == 0)
 
+# Add violation data to restaurant attributes
 restaurant_all_attributes <- restaurant_attributes_enriched %>%
   dplyr::left_join(violations_by_restaurant)
 
-# Shorten certain cuistine types
+# Shorten name of certain cuistine types
 restaurant_all_attributes$cuisine_description[grepl('Latin', restaurant_all_attributes$cuisine_description)] <- 'Latin'
 restaurant_all_attributes$cuisine_description[grepl('Coffee', restaurant_all_attributes$cuisine_description)] <- 'Coffee Shop'
 
@@ -111,4 +117,26 @@ summary(cuisine_type_linear_model)
 
 ### Part 2
 # Changes over time
+restaurant_violations_enriched <- restaurant_violations %>%
+  dplyr::mutate(grade_date = mdy(grade_date)) %>%
+  dplyr::mutate(year_month = format(grade_date, '%Y-%m'),
+                year_quarter = paste0(format(grade_date, '%Y'), '_Q', lubridate::quarter(grade_date)),
+                grade_month = lubridate::month(grade_date, label = TRUE)) %>%
+  dplyr::arrange(grade_date)
 
+boxplot_violations_by_month <- ggplot(restaurant_violations_enriched,
+                                        aes(x = grade_month, y = score, group = grade_month)) +
+  geom_boxplot()
+boxplot_violations_by_month
+
+violations_by_month_lm <- lm(score ~ grade_month, data = restaurant_violations_enriched)
+summary(violations_by_month_lm)
+
+boxplot_violations_by_quarter <- ggplot(restaurant_violations_enriched,
+                                        aes(x = year_quarter, y = score)) +
+  geom_boxplot()
+boxplot_violations_by_quarter
+
+# plot average as barchart and by year, and add to appendix
+
+# output to google sheet
