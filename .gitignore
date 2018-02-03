@@ -2,3 +2,4 @@
 *.Rproj
 .Rprofile
 packrat/lib*/
+.Renviron
