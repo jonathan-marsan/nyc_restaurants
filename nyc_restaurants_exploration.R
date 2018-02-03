@@ -1,8 +1,14 @@
 pacman::p_load(dplyr)
 pacman::p_load(lubridate)
+pacman::p_load(aws.s3)
 
-
-### Read in files as tables
+## Read in file from S3
+# Dataset: https://catalog.data.gov/dataset/dohmh-new-york-city-restaurant-inspection-results
+raw_object <- aws.s3::get_object("s3://nyc-restaurants-20180203/nyc_restaurants.csv")
+char_string <- base::rawToChar(raw_object)
+con <- base::textConnection(char_string)
+nyc_restaurants <- read.csv(con)
+close(con)
 
 # Prep table names names
 dataset_files <- list.files(path = 'data/', pattern = '*.tsv')

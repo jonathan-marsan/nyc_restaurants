@@ -33,6 +33,23 @@ Source: CRAN
 Version: 0.2.0
 Hash: e8805df54c65ac96d50235c44a82615c
 
+Package: aws.s3
+Source: CRAN
+Version: 0.3.3
+Hash: a7e8756529d52eecf039061396536636
+Requires: aws.signature, base64enc, digest, httr, xml2
+
+Package: aws.signature
+Source: CRAN
+Version: 0.3.5
+Hash: d1d728e686b673974282dd3389034303
+Requires: base64enc, digest
+
+Package: base64enc
+Source: CRAN
+Version: 0.1-3
+Hash: c590d29e555926af053055e23ee79efb
+
 Package: bindr
 Source: CRAN
 Version: 0.1
@@ -257,3 +274,9 @@ Package: withr
 Source: CRAN
 Version: 2.1.1
 Hash: a86856ae0b4a7c3daf9a3ef0097a403b
+
+Package: xml2
+Source: CRAN
+Version: 1.2.0
+Hash: 94e9b541116e27d80a23d436f81eda80
+Requires: Rcpp
