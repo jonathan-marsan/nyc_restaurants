@@ -1,7 +1,6 @@
-library(dplyr, lib.loc = '../r_libs/')
-library(ggplot2, lib.loc = '../r_libs/')
-library(labeling, lib.loc = '../r_libs/')
-library(lubridate, lib.loc = '../r_libs/')
+pacman::p_load(dplyr)
+pacman::p_load(lubridate)
+
 
 ### Read in files as tables
 
