@@ -3,3 +3,7 @@
 .Rprofile
 packrat/lib*/
 .Renviron
+output/
+venv/
+.env
+__pycache__/

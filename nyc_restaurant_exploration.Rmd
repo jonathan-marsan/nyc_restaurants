@@ -1,0 +1,86 @@
+---
+title: ""
+author: "Jonathan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    theme: spacelab
+params:
+  first_inspection: first_inspection,
+  last_inspection: last_inspection,
+  nb_restaurants: nb_restaurants
+  nb_cuisine_types: nb_cuisine_types
+  rest_count_by_cuisine: rest_count_by_cuisine
+  grade_count: grade_count
+  a_grade_percent: a_grade_percent
+  inspections_by_month_plot: inspections_by_month_plot
+  fit_inspections: fit_inspections
+---
+  
+```{r setup, include=FALSE}
+pacman::p_load(DT)
+pacman::p_load(htmlTable)
+```
+
+# Exploring the NYC Restaurant Inspection Results Dataset
+
+#### Intro
+
+The `DOHMH New York City Restaurant Inspection Results` dataset provides
+information on restaurant violations and grades following city inspections. This
+report includes inspections from **`r params$first_inspection`** to
+**`r params$last_inspection`** from **`r params$nb_restaurants`** restaurants. 
+
+Inspection grades of **A**, **B**, and **C** are given out based on an
+inspection score. A for scores between 0 and 13, B for score between 14 and 27,
+and C for scores above 28. 
+
+---
+
+#### Inspections per Month
+
+##### How many inspections are carried out each month?
+```{r echo=FALSE}
+params$inspections_by_month_plot
+```
+
+Although inspection dates start in 2011, the majority of inspections appear
+to occur from 2015 onwards. From this point onwards, the number of inspections
+varies roughly between 7500 and just over 10000 each month.
+
+##### Do there appear to be any seasonal trends?
+```{r echo=FALSE}
+plot(params$fit_inspections)
+```
+
+Inspections appear to increase slightly at the beginning of the year (~ February ),
+and dip around the end of the year (~ November ).
+
+---
+
+#### Inspection Results
+
+##### How many inspections resulted in grades A, B and C?
+
+```{r echo=FALSE}
+htmlTable::htmlTable(params$grade_count,
+                     css.cell = "padding-left: 2em; padding-right: 2em;")
+```
+
+---
+
+##### How many restaurants were inspected of each cuisine type?
+
+```{r echo=FALSE}
+datatable(params$rest_count_by_cuisine, options = list(pageLength = 6))
+```
+
+
+
+---
+  
+## Footnote
+
+#### Dataset source
+
+* https://data.cityofnewyork.us/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/43nn-pn8j
