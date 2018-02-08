@@ -6,8 +6,8 @@ import pandas as pd
 from yelpapi import YelpAPI
 
 API_KEY = os.environ['YELP_API_KEY']
-API_CALL_LIMIT = int(os.environ['API_CALL_LIMIT'])
-nyc_inspect_csv = 'output/nyc_inspection_data.csv'
+API_CALL_LIMIT = 500
+nyc_inspect_csv = 'output/nyc_restaurant_inspection_data.csv'
 yelp_output_folder = 'output/yelp_business_data/'
 yelp_manifest_folder = 'output/yelp_business_data/manifest/'
 
@@ -40,7 +40,6 @@ def _get_yelp_data_by_phone_nbr(api_key, yelp_phone_numbers, manifest_folder,
     return yelp_busines_data
 
 
-# Need to create a manifest and write whether queried or not, and query time
 def _parse_yelp_info_in_df(business_data):
     data_list = []
     for data in business_data:
@@ -69,24 +68,48 @@ def _get_list_delta(original_list, list_to_cross_reference):
     for element in original_list:
         if element not in list_to_cross_reference:
             list.append(element)
-    return list
+    return {'orig_len': len(original_list), 'new_len': len(list),
+            'new_list':list}
 
-# Tech debt: only make api call for phone numbers that have not been requested yet
-def write_yelp_data_to_disk(input, api_key, output_folder, manifest_folder,
-                               limit=100):
-    timestamp = str(time.time())[0:10]
+def import_write_yelp_data_to_disk(api_key, phone_numbers, manifest_folder,
+                                   current_timestamp):
+    try:
+        business_info = _get_yelp_data_by_phone_nbr(api_key=api_key,
+                                                    yelp_phone_numbers=phone_numbers,
+                                                    manifest_folder=manifest_folder,
+                                                    manifest_filename='manifest_'+current_timestamp)
+        output_filepath = create_csv_filepath(output_folder, 'output_' + current_timestamp)
+        _parse_yelp_info_in_df(business_data=business_info).to_csv(output_filepath)
+    except:
+        pass
+
+def zero_if_negative(number):
+    if number < 0:
+        return 0
+    return numberRestaurants with business data imported from Yelp: 1000 line
+
+# fix Restaurants with business data imported from Yelp: 1000 line
+
+def update_yelp_business_data(input, api_key, output_folder, manifest_folder,
+                              limit=100):
+    current_timestamp = str(time.time())[0:10]
     p = _get_phone_numbers(df_filepath=input, phone_col='phone')
-    phone_numbers = _get_list_delta(_convert_to_yelp_phone_numbers(p),
-                                    str(_get_already_imported_phone_numbers(yelp_manifest_folder)))[0:limit]
-    business_info = _get_yelp_data_by_phone_nbr(api_key=api_key,
-                                                yelp_phone_numbers=phone_numbers,
-                                                manifest_folder=manifest_folder,
-                                                manifest_filename='manifest_'+timestamp)
-    output_filepath = create_csv_filepath(output_folder, 'output_' + timestamp)
-    _parse_yelp_info_in_df(business_data=business_info).to_csv(output_filepath)
-    print('Done')
+    phone_nbrs_delta = _get_list_delta(_convert_to_yelp_phone_numbers(p),
+                                    str(_get_already_imported_phone_numbers(yelp_manifest_folder)))
+    phone_numbers = phone_nbrs_delta['new_list'][0:limit]
+
+    import_write_yelp_data_to_disk(api_key, phone_numbers, manifest_folder,
+                                   current_timestamp)
+
+    print("""
+          Total restaurants in NYC Inspection dataset: {0}
+          Restaurants with business data imported from Yelp: {1}
+          Restaurants left to import from Yelp: {2}
+          """.format(phone_nbrs_delta['orig_len'],
+                     str(limit),
+                     zero_if_negative(phone_nbrs_delta['new_len']-limit)))
 
 if __name__ == "__main__":
-    write_yelp_data_to_disk(input=nyc_inspect_csv, api_key=API_KEY,
+    update_yelp_business_data(input=nyc_inspect_csv, api_key=API_KEY,
                                output_folder=yelp_output_folder,
-                               manifest_folder=yelp_manifest_folder, limit=2000)
+                               manifest_folder=yelp_manifest_folder, limit=API_CALL_LIMIT)

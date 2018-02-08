@@ -4,6 +4,7 @@
 packrat/lib*/
 .Renviron
 output/
+backup/
 venv/
 .env
 __pycache__/
