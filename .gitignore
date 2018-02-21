@@ -8,3 +8,4 @@ backup/
 venv/
 .env
 __pycache__/
+.Rhistory
