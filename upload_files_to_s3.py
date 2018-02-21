@@ -33,8 +33,6 @@ def upload_files_in_dir_to_s3(directory, bucket_name):
                 filename = os.path.join(path, name)
                 upload_file_to_s3(filepath=filename,
                                   bucket_name=bucket_name)
-
-
-if __name__ == "__main__":
-    upload_files_in_dir_to_s3(directory='output',
-                              bucket_name='nyc-restaurants-20180203')
+                print("""
+                      Uploaded: {0}
+                      """.format(filename))
