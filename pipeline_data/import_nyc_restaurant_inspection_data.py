@@ -7,7 +7,7 @@ import os
 
 from sodapy import Socrata
 
-from utilities import get_count, list_to_csv
+from modules.utilities import get_count, list_to_csv
 
 
 def write_nyc_inspection_to_csv(token, output_csv,

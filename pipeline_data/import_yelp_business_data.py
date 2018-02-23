@@ -9,13 +9,11 @@ import time
 
 import pandas as pd
 import boto3
-
-
 from yelpapi import YelpAPI
 
-from utilities import (create_csv_filepath, get_list_delta, zero_if_negative,
-                       list_s3_files, unique_elements)
-from yelp_utilities import convert_to_yelp_phone_numbers
+from modules.utilities import (create_csv_filepath, get_list_delta,
+                               zero_if_negative, list_s3_files, unique_elements)
+from modules.yelp_utilities import convert_to_yelp_phone_numbers
 
 
 # Tech debt: investigate solutions to speed up querying (e.g. check graphQL limitations)
