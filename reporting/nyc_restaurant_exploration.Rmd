@@ -1,0 +1,135 @@
+---
+title: "Exploring the NYC Restaurant Inspection Results Dataset"
+author: "Jonathan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: true
+    theme: spacelab
+params:
+  first_inspection: first_inspection,
+  last_inspection: last_inspection,
+  nb_restaurants: nb_restaurants
+  nb_cuisine_types: nb_cuisine_types
+  rest_by_cuisine_and_prob_grade_A_only: rest_by_cuisine_and_prob_grade_A_only
+  overall_prob_gradeA: overall_prob_gradeA
+  grade_count: grade_count
+  a_grade_percent: a_grade_percent
+  inspections_by_month_plot: inspections_by_month_plot
+  fit_inspections: fit_inspections
+  borough_score_plot: borough_score_plot
+  borough_score_aov: borough_score_aov
+  price_score_aov: price_score_aov
+  avg_viol_score_with_yelp_price_plot: avg_viol_score_with_yelp_price_plot
+---
+  
+```{r setup, include=FALSE}
+pacman::p_load(DT)
+pacman::p_load(htmlTable)
+
+options(DT.options = list(
+  dom = 'Blfrtip',
+  buttons = c('copy', 'csv', 'excel'),
+  pageLength = 6,
+  scrollX = TRUE,
+  fixedColumns = list(leftColumns = 2),
+  colReorder = TRUE))
+```
+
+### Intro
+
+The `DOHMH New York City Restaurant Inspection Results` dataset provides
+information on restaurant violations and grades following city inspections. This
+report includes inspections from **`r params$first_inspection`** to
+**`r params$last_inspection`** from **`r params$nb_restaurants`** restaurants. 
+
+Inspection grades of **A**, **B**, and **C** are given out based on an
+inspection score. A for scores between 0 and 13, B for scores between 14 and 27,
+and C for scores above 28. 
+
+---
+
+### Inspections per Month
+
+##### **How many inspections are carried out each month?**
+```{r echo=FALSE}
+params$inspections_by_month_plot
+```
+
+**Comment**
+
+Although the first recorded inspection dates starts in 2011, the majority of inspections appear from 2015 onwards (maybe because inspection data wasn't recorded at the time?). From 2015 onwards, the number of inspections varies roughly between 7500 and just over 10000 each month.
+
+##### **Do there appear to be any seasonal trends?**
+```{r echo=FALSE}
+plot(params$fit_inspections)
+```
+
+**Comment**
+
+For 2015 to 2017, inspections seem to increase slightly at the beginning of the year (~ February ), and dip around the end of the year (~ November ).
+
+---
+
+### Inspection Results
+
+##### **What percentage of inspections resulted in grades A, B and C?**
+
+```{r echo=FALSE}
+htmlTable::htmlTable(params$grade_count,
+                     css.cell = "padding-left: 2em; padding-right: 2em; padding-top: .6em; padding-bottom: .6em;")
+```
+
+**Comment**
+
+The vast majority of inspections result in grade A.
+
+##### **How many restaurants were inspected and received a grade of A, B or C? What is the overall probability that a restaurant only received grade A?**
+
+
+```{r echo=FALSE}
+htmlTable::htmlTable(params$overall_prob_gradeA,
+                     css.cell = "padding-left: 10em; padding-right: 10em; padding-top: .6em; padding-bottom: .6em;")
+```
+
+##### **How many restaurants were inspected and received a grade of A, B or C for each cuisine type? What is the probability that a restaurant of a given cuisine type only received grade A?**
+
+```{r echo=FALSE}
+datatable(params$rest_by_cuisine_and_prob_grade_A_only,
+          filter = 'top',
+          extensions = c('Buttons', 'FixedColumns', 'ColReorder'))
+```
+
+---
+
+### Associations withs violation score
+
+##### **Is there any association between borough and average (median) violation score?**
+
+```{r echo=FALSE}
+plot(params$borough_score_plot)
+```
+
+**Comment**
+
+At first glance, mean scores between boroughs appear quite similar. However, when checking the significance between these means, the overall p-value is quite low ( **`r borough_score_aov[[1]][["Pr(>F)"]][1]`** ), which supports the idea that borough and score have some sort of association. 
+
+##### **Is there an association between average inspection scores (i.e. worse grade) and restaurant price?**
+
+
+```{r echo=FALSE}
+plot(params$avg_viol_score_with_yelp_price_plot)
+```
+
+**Comment**
+
+The priciest restaurants (`$$$$` category) appear to have a slightly lower average violation scores than other groups. The p-value is quite small ( **`r price_score_aov[[1]][["Pr(>F)"]][1]`** ), which supports the idea that some sort of association exists between price and violation scores.
+
+---
+  
+## Footnote
+
+#### Dataset sources
+
+* https://data.cityofnewyork.us/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/43nn-pn8j
+* https://www.yelp.com/developers/documentation/v3/get_started
