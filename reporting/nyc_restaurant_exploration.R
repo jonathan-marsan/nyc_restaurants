@@ -18,7 +18,7 @@ nyc_inspection_data_s3_path <- "output/nyc_restaurant_inspection_data.csv"
 nyc_restaurants <- convert_s3_csv_to_df(bucket_name, nyc_inspection_data_s3_path)
 
 ## Read Yelp data from S3
-all_files <- get_bucket(bucket_name, prefix="output/yelp_business_data/")
+all_files <- aws.s3::get_bucket(bucket_name, prefix="output/yelp_business_data/")
 specific_keys <- get_my_s3_keys(s3_bucket_objs=all_files, exclusion_pattern='/manifest/')
 yelp_data <- convert_many_s3_csv_to_df(bucket_name, specific_keys)
 
@@ -58,7 +58,7 @@ nyc_rest_cleaned <- nyc_restaurants %>%
 # Summarize inspections ---------------------------------------------------
 
 first_inspection <- nyc_rest_cleaned %>%
-  filter(inspection_date > as.Date('1900-01-01')) %>% #removing inspect dates that appear to be omitted
+  dplyr::filter(inspection_date > as.Date('1900-01-01')) %>% #removing inspect dates that appear to be omitted
   .$inspection_date %>%
   min()
 last_inspection <- max(nyc_rest_cleaned$inspection_date)
@@ -73,11 +73,11 @@ inspections_by_month_plot <-  ggplot(data = nyc_rest_cleaned %>% filter(inspecti
   labs(x = 'Inspection Month', y = 'Number of Inspections')
 
 inspections_by_month_ts <- nyc_rest_cleaned %>%
-  filter(inspection_date > as.Date('2015-01-01'),
-         inspection_date < as.Date('2018-02-01')) %>%
-  group_by(inspection_month) %>%
-  summarise(count = n()) %>%
-  arrange(inspection_month) %>%
+  dplyr::filter(inspection_date > as.Date('2015-01-01'),
+                inspection_date < as.Date('2018-02-01')) %>%
+  dplyr::group_by(inspection_month) %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::arrange(inspection_month) %>%
   .$count %>%
   ts(frequency = 12)
 
@@ -87,52 +87,52 @@ fit_inspections <- stl(inspections_by_month_ts, s.window="periodic")
 # Summarize grades --------------------------------------------------------
 
 grade_count <- nyc_rest_cleaned %>%
-  filter(grade %in% c('A', 'B', 'C')) %>%
-  group_by(grade) %>%
-  summarise(count = n()) %>%
-  mutate(percent = scales::percent(count/sum(.$count)),
-         count = format(count, big.mark = ",")) %>%
-  arrange(grade)
+  dplyr::filter(grade %in% c('A', 'B', 'C')) %>%
+  dplyr::group_by(grade) %>%
+  dplyr::summarise(count = n()) %>%
+  dplyr::mutate(percent = scales::percent(count/sum(.$count)),
+                count = format(count, big.mark = ",")) %>%
+  dplyr::arrange(grade)
 
 overall_prob_gradeA <- nyc_rest_cleaned %>%
-  filter(grade %in% c('A', 'B', 'C')) %>%
-  mutate(is_grade_A = grade == 'A') %>%
-  group_by(restaurant_id) %>%
-  summarise(only_grade_A = mean(is_grade_A)==1) %>%
-  ungroup() %>%
-  summarise(nb_gradeABC_restaurants = n(),
-            probability_only_received_grade_A = scales::percent(mean(only_grade_A)))
+  dplyr::filter(grade %in% c('A', 'B', 'C')) %>%
+  dplyr::mutate(is_grade_A = grade == 'A') %>%
+  dplyr::group_by(restaurant_id) %>%
+  dplyr::summarise(only_grade_A = mean(is_grade_A)==1) %>%
+  dplyr::ungroup() %>%
+  dplyr::summarise(nb_gradeABC_restaurants = n(),
+                   probability_only_received_grade_A = scales::percent(mean(only_grade_A)))
 
 rest_count_by_cuisine <- nyc_rest_cleaned %>%
-  select(restaurant_id, cuisine_type) %>%
+  dplyr::select(restaurant_id, cuisine_type) %>%
   unique() %>%
-  group_by(cuisine_type) %>%
-  summarise(nb_restaurants = n()) %>%
-  mutate(overall_proportion = scales::percent(nb_restaurants/sum(.$nb_restaurants))) %>%
-  arrange(desc(nb_restaurants))
+  dplyr::group_by(cuisine_type) %>%
+  dplyr::summarise(nb_restaurants = n()) %>%
+  dplyr::mutate(overall_proportion = scales::percent(nb_restaurants/sum(.$nb_restaurants))) %>%
+  dplyr::arrange(desc(nb_restaurants))
 
 grade_A_inspections <- nyc_rest_cleaned %>%
-  filter(grade %in% c('A', 'B', 'C')) %>% # remove empty or pending grades
-  mutate(is_grade_A = grade == 'A') %>%
-  group_by(restaurant_id, cuisine_type) %>%
-  summarise(only_grade_A = mean(is_grade_A)==1) %>%
-  group_by(cuisine_type) %>%
-  summarise(nb_gradeABC_restaurants = n(),
-            probability_only_received_grade_A = scales::percent(mean(only_grade_A)))
+  dplyr::filter(grade %in% c('A', 'B', 'C')) %>% # remove empty or pending grades
+  dplyr::mutate(is_grade_A = grade == 'A') %>%
+  dplyr::group_by(restaurant_id, cuisine_type) %>%
+  dplyr::summarise(only_grade_A = mean(is_grade_A)==1) %>%
+  dplyr::group_by(cuisine_type) %>%
+  dplyr::summarise(nb_gradeABC_restaurants = n(),
+                   probability_only_received_grade_A = scales::percent(mean(only_grade_A)))
 
 rest_by_cuisine_and_prob_grade_A_only <- rest_count_by_cuisine %>%
-  left_join(grade_A_inspections)
+  dplyr::left_join(grade_A_inspections)
 
 
 
 # Is borough correlated with violation score? -----------------------------
 
 borough_score <- nyc_rest_cleaned %>%
-  select(restaurant_id, borough, score) %>%
-  mutate(borough = as.factor(borough)) %>%
-  filter(borough != 'Missing' & !is.na(score)) %>%
-  group_by(restaurant_id, borough) %>%
-  summarise(mean_score = mean(score, na.rm=TRUE))
+  dplyr::select(restaurant_id, borough, score) %>%
+  dplyr::mutate(borough = as.factor(borough)) %>%
+  dplyr::filter(borough != 'Missing' & !is.na(score)) %>%
+  dplyr::group_by(restaurant_id, borough) %>%
+  dplyr::summarise(mean_score = mean(score, na.rm=TRUE))
 
 borough_score_plot <- ggplot(data=borough_score,
                              aes(x=borough, y= mean_score)) +
@@ -145,16 +145,16 @@ borough_score_tukey <- TukeyHSD(aov(mean_score ~ borough, data = borough_score))
 # Are violation scores inversely restaurant price? ---------------------
 
 yelp_price_data <- yelp_data %>%
-  select(phone, price) %>%
-  mutate(phone = as.character(phone),
-         price = as.factor(price))
+  dplyr::select(phone, price) %>%
+  dplyr::mutate(phone = as.character(phone),
+                price = as.factor(price))
 
 avg_viol_score_with_yelp_price <- nyc_rest_cleaned %>%
-  mutate(phone = paste0("1", as.character(phone))) %>%
-  group_by(phone) %>%
-  summarise(mean_violation_score = mean(score, na.rm = TRUE)) %>%
-  inner_join(yelp_price_data) %>%
-  filter(!is.na(mean_violation_score) & !is.na(price))
+  dplyr::mutate(phone = paste0("1", as.character(phone))) %>%
+  dplyr::group_by(phone) %>%
+  dplyr::summarise(mean_violation_score = mean(score, na.rm = TRUE)) %>%
+  dplyr::inner_join(yelp_price_data) %>%
+  dplyr::filter(!is.na(mean_violation_score) & !is.na(price))
 
 avg_viol_score_with_yelp_price_plot <- ggplot(data=avg_viol_score_with_yelp_price,
                                               aes(x=price, y=mean_violation_score)) +

@@ -104,7 +104,7 @@ datatable(params$rest_by_cuisine_and_prob_grade_A_only,
 
 ### Associations withs violation score
 
-##### **Is there any association between borough and average (median) violation score?**
+##### **Is there any association between borough and average (mean) violation score?**
 
 ```{r echo=FALSE}
 plot(params$borough_score_plot)
