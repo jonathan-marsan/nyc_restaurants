@@ -1,4 +1,6 @@
-
+"""
+Enable upload of all files in a given directory to s3
+"""
 import os
 
 import boto3

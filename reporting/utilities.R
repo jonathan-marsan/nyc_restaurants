@@ -1,5 +1,5 @@
 ###
-# Yelp dataset functions
+# Utility functions for Yelp and AWS
 ###
 
 require(aws.s3)

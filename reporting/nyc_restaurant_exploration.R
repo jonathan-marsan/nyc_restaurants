@@ -1,3 +1,7 @@
+###
+# Exploratory analysis of NYC restaurant inspection data
+###
+
 pacman::p_load(dplyr)
 pacman::p_load(ggplot2)
 pacman::p_load(lubridate)
