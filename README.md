@@ -42,9 +42,14 @@ This repo uses a combination of Packrat and Pacman R libraries for package manag
 * Packrat: https://rstudio.github.io/packrat/
 * Pacman: https://cran.r-project.org/web/packages/pacman/vignettes/Introduction_to_pacman.html
 
+### AWS Setup
+
+* Python package `boto3` documentation: https://boto3.readthedocs.io/en/latest/guide/quickstart.html
+* R `aws.s3` documentation: https://cran.r-project.org/web/packages/aws.s3/index.html
+
 ### Pipeline
 
 Tasks are managed using the command line and Luigi (https://luigi.readthedocs.io/en/stable/)
 * In your virtual environment type `luigid`
 * Then, in a separate command line window, run tasks found in `pipeline.py`, using `python3 -m luigi --module pipeline [TASK_NAME]`
-* To run the Rscript, type `Rscript [FILEPATH]`
+* To run the Rscript, type `Rscript [FILEPATH]` (datasets in s3 required)
