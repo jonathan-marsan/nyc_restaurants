@@ -2,11 +2,10 @@
 
 ## Overview
 
-This project includes a few different examples of scripts useful when working with data:
-* Automation of a single file download (via api) and upload to s3 (luigi pipeline task `nyc_inspection_to_s3`)
-* Automation of api calls to download and upload data incrementally into s3 using a simple manifest folder (luigi pipeline task `yelp_business_data_to_s3`)
-* Exploratory analysis of the NYC City Restaurant Inspection Results dataset (R script `nyc_restaurant_exploration`, see html report link below)
-* Combination of datasets from different source to enrich analysis (NYC restaurant inspections + Yelp business data, combined using phone numbers)
+This project explores the `DOHMH New York City Restaurant Inspection Results` dataset. Scripts are used to:
+* Automate download of the `DOHMH New York City Restaurant Inspection Results` dataset and its subsequent upload to s3 (luigi pipeline tasks `nyc_inspection_to_csv` and `nyc_inspection_to_s3`)
+* Automate download of complementary Yelp business data in incremental runs, and its upload to s3 (luigi pipeline task `yelp_business_data_to_s3`)
+* Highlight certain trends in the NYC City Restaurant Inspection Results dataset, and enrich the analysis using Yelp business data (R script `nyc_restaurant_exploration`, see html report link below)
 
 ## Datasets
 
