@@ -5,11 +5,12 @@ import os
 
 import boto3
 
-from shutil import move
-
 
 def move_file(filepath, new_directory):
-    new_filepath = new_directory + filepath.rsplit('/',1)[1]
+    """
+    Move file to new directory
+    """
+    new_filepath = new_directory + filepath.rsplit('/', 1)[1]
     if not os.path.exists(new_directory):
         os.makedirs(new_directory)
     os.rename(filepath, new_filepath)
@@ -17,10 +18,13 @@ def move_file(filepath, new_directory):
 
 
 def upload_file_to_s3(filepath, bucket_name, backup_directory="backup/"):
+    """
+    Upload file into bucket and move file on disk to backup directory
+    """
     try:
-        s3 = boto3.resource('s3')
+        s3_ressource = boto3.resource('s3')
         data = open(filepath, 'rb')
-        s3.Bucket(bucket_name).put_object(Key=filepath, Body=data)
+        s3_ressource.Bucket(bucket_name).put_object(Key=filepath, Body=data)
         print('Uploaded: ' + filepath)
     except:
         print('Error uploading: ' + filepath)
@@ -29,6 +33,9 @@ def upload_file_to_s3(filepath, bucket_name, backup_directory="backup/"):
 
 
 def upload_files_in_dir_to_s3(directory, bucket_name):
+    """
+    Upload all files in directory to s3 bucket
+    """
     for path, subdirs, files in os.walk(directory):
         for name in files:
             if name[0] != '.':

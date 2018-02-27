@@ -6,7 +6,6 @@ import os
 import csv
 
 import pandas as pd
-import sodapy
 import boto3
 
 
@@ -17,14 +16,17 @@ def get_count(client, dataset):
     try:
         count = client.get(dataset, select='count(*)')
     except:
-        'Request errored out.'
+        print('Request errored out')
     return count[0]['count']
 
 
-def list_to_csv(list, path):
+def list_to_csv(items, path):
+    """
+    Write items in list to csv
+    """
     with open(path, "w") as output:
-        writer = csv.writer(output, delimiter = ",")
-        for item in list:
+        writer = csv.writer(output, delimiter=",")
+        for item in items:
             writer.writerow(item)
 
 
@@ -39,11 +41,14 @@ def get_unique_entries_from_csv(csv_filepath, col):
     """
     Ouput unique entries from a table column stored in a csv
     """
-    df = pd.read_csv(csv_filepath, sep=',')
-    return df[col].unique()
+    data_frame = pd.read_csv(csv_filepath, sep=',')
+    return data_frame[col].unique()
 
 
 def unique_elements(items):
+    """
+    Output unique elements of a list
+    """
     return list(set(items))
 
 
@@ -53,12 +58,12 @@ def get_list_delta(original_list, list_to_cross_reference):
     Output dictionary that lists entries from original list
     not in cross-referenced list with counts.
     """
-    list = []
+    my_list = []
     for element in original_list:
         if element not in list_to_cross_reference:
-            list.append(element)
-    return {'orig_len': len(original_list), 'new_len': len(list),
-            'new_list':list}
+            my_list.append(element)
+    return {'orig_len': len(original_list), 'new_len': len(my_list),
+            'new_list':my_list}
 
 
 def zero_if_negative(number):
@@ -79,6 +84,9 @@ def return_files_by_suffix(folder, suffix):
 
 
 def list_s3_files(bucket_name, path):
+    """
+    List files in s3 bucket
+    """
     resource = boto3.resource('s3')
     my_bucket = resource.Bucket(bucket_name)
     return list(my_bucket.objects.filter(Prefix=path))

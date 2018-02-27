@@ -8,7 +8,6 @@ import io
 import time
 
 import pandas as pd
-import boto3
 from yelpapi import YelpAPI
 
 from modules.utilities import (create_csv_filepath, get_list_delta,

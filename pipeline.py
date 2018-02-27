@@ -3,12 +3,9 @@ Workflow management file to run data pipeline scripts
 """
 
 import os
-import subprocess
 
-import pandas as pd
 import luigi
 from luigi.contrib.simulate import RunAnywayTarget
-from yelpapi import YelpAPI
 
 from data.import_nyc_restaurant_inspection_data import write_nyc_inspection_to_csv
 from data.import_yelp_business_data import import_yelp_business_data
